@@ -1,4 +1,4 @@
-CREATE FUNCTION cs_refresh_mviews() RETURNS char AS $$
+CREATE OR REPLACE FUNCTION clear_black_phones() RETURNS char AS $$
 DECLARE
     mviews RECORD;
 BEGIN
