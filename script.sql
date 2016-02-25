@@ -24,15 +24,16 @@ BEGIN
 		t_name := '';
 		found_in := '';
 		
-		FOR col IN SELECT *
+		FOR col IN SELECT table_name, column_name, table_schema
 				FROM information_schema.columns
 				WHERE table_schema = 'public'
 				  AND table_name != 'AA_remove'
 				  AND table_name != 'W_Files'
+				  AND table_name NOT ILIKE 'CRM_%'
 				ORDER BY table_name LOOP
-			
-			IF col.table_name != t_name THEN
 
+			--phone_1
+			IF col.table_name != t_name THEN
 				IF t_name != '' THEN
 					--RAISE NOTICE 'Processing table % ...', t_name;
 					EXECUTE col_str INTO res;
@@ -41,23 +42,28 @@ BEGIN
 						found_in := found_in || t_name || ', ';
 					END IF;
 				END IF;
-			
 				t_name := col.table_name;
-				
 				col_str := 'SELECT count(*) FROM ' || quote_ident(col.table_name) || ' WHERE ';
 				col_str := col_str || 'TRIM(REPLACE(' || quote_ident(col.column_name) || '::TEXT,''+'',''''))' || 
-						'::TEXT ILIKE ''%' || nums.phone_1::TEXT || '%'' ';
+						'::TEXT ILIKE ''%' || TRIM(REPLACE(nums.phone_1::TEXT,'+','')) || '%'' ';
 			ELSE
 				col_str := col_str || ' OR ' || 'TRIM(REPLACE(' || quote_ident(col.column_name) || '::TEXT,''+'',''''))' ||
-						'::TEXT ILIKE ''%' || nums.phone_1::TEXT || '%'' ';
+						'::TEXT ILIKE ''%' || TRIM(REPLACE(nums.phone_1::TEXT,'+','')) || '%'' ';
 			END IF;
+
+			--phone_2
+			IF nums.phone_2 != '0' THEN
+				col_str := col_str || ' OR ' || 'TRIM(REPLACE(' || quote_ident(col.column_name) || '::TEXT,''+'',''''))' ||
+						'::TEXT ILIKE ''%' || TRIM(REPLACE(nums.phone_2::TEXT,'+','')) || '%'' ';
+			END IF;
+			
 			--SELECT * FROM public.clear_black_phones();
-			
-			
 		END LOOP;
 
 		RAISE NOTICE '% found_in=%', nums.name, found_in;
-		UPDATE "AA_remove" SET is_found=found_in;
+		UPDATE "AA_remove" 
+		SET is_found = found_in 
+		WHERE id = nums.id;
 		
 		
 		--EXECUTE 'INSERT INTO '
