@@ -15,8 +15,9 @@ CREATE TABLE public."AA_remove"
 	name text,
 	phone_1 text,
 	phone_2 text,
-	email text--,
-	--CONSTRAINT "AA_remove_id_seq" PRIMARY KEY ("id")
+	email text,
+	is_found text,
+	is_removed text
 )
 WITH (
 	OIDS=FALSE
