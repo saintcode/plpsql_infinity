@@ -19,7 +19,7 @@ BEGIN
 			FROM "AA_remove"
 			WHERE is_found is NULL
 			ORDER BY id
-			LIMIT 100
+			LIMIT 300 --SELECT * FROM public.clear_black_phones();
 		LOOP
 
 		col_str := '';
