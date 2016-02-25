@@ -17,8 +17,10 @@ BEGIN
 
 	FOR nums IN SELECT *
 			FROM "AA_remove"
-			WHERE is_removed is NULL
-			ORDER BY id LOOP
+			WHERE is_found is NULL
+			ORDER BY id
+			LIMIT 100
+		LOOP
 
 		col_str := '';
 		t_name := '';
@@ -65,16 +67,6 @@ BEGIN
 		SET is_found = found_in 
 		WHERE id = nums.id;
 		
-		
-		--EXECUTE 'INSERT INTO '
-		--           || quote_ident(mviews.mv_name) || ' '
-		--           || mviews.mv_query;
-		--FOR mviews IN SELECT table_schema,table_name
-		--		FROM information_schema.tables
-		--		WHERE table_schema='public'
-		--		ORDER BY table_schema,table_name LOOP
-		--END LOOP;
-	    
 	END LOOP;
 	
 

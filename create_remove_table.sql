@@ -16,8 +16,7 @@ CREATE TABLE public."AA_remove"
 	phone_1 text,
 	phone_2 text,
 	email text,
-	is_found text,
-	is_removed text
+	is_found text
 )
 WITH (
 	OIDS=FALSE
