@@ -10,6 +10,7 @@ DECLARE
     nums RECORD;
     col RECORD;
     col_str TEXT;
+    found_in TEXT;
     t_name TEXT;
     res INTEGER;
 BEGIN
@@ -21,28 +22,43 @@ BEGIN
 
 		col_str := '';
 		t_name := '';
+		found_in := '';
 		
 		FOR col IN SELECT *
 				FROM information_schema.columns
 				WHERE table_schema = 'public'
-				  AND table_name   != 'AA_remove'
+				  AND table_name != 'AA_remove'
+				  AND table_name != 'W_Files'
 				ORDER BY table_name LOOP
 			
-			--RAISE NOTICE 'column %', col.column_name;
-			--RAISE NOTICE 'Processing table % ...', col.table_name;
 			IF col.table_name != t_name THEN
+
+				IF t_name != '' THEN
+					--RAISE NOTICE 'Processing table % ...', t_name;
+					EXECUTE col_str INTO res;
+					--RAISE NOTICE 'res=% %', res, nums.name;
+					IF res>0 THEN
+						found_in := found_in || t_name || ', ';
+					END IF;
+				END IF;
+			
 				t_name := col.table_name;
+				
 				col_str := 'SELECT count(*) FROM ' || quote_ident(col.table_name) || ' WHERE ';
-				col_str := col_str || quote_ident(col.column_name) || '::TEXT ilike ''%' || nums.phone_1::TEXT || '%'' ';
+				col_str := col_str || 'TRIM(REPLACE(' || quote_ident(col.column_name) || '::TEXT,''+'',''''))' || 
+						'::TEXT ILIKE ''%' || nums.phone_1::TEXT || '%'' ';
 			ELSE
-				col_str := col_str || ' OR ' || quote_ident(col.column_name) || '::TEXT ilike ''*' || nums.phone_1::TEXT || '*'' ';
+				col_str := col_str || ' OR ' || 'TRIM(REPLACE(' || quote_ident(col.column_name) || '::TEXT,''+'',''''))' ||
+						'::TEXT ILIKE ''%' || nums.phone_1::TEXT || '%'' ';
 			END IF;
+			--SELECT * FROM public.clear_black_phones();
 			
 			
 		END LOOP;
+
+		RAISE NOTICE '% found_in=%', nums.name, found_in;
+		UPDATE "AA_remove" SET is_found=found_in;
 		
-		EXECUTE col_str INTO res;
-		RAISE NOTICE 'res=% % %', res, nums.name, col_str;
 		
 		--EXECUTE 'INSERT INTO '
 		--           || quote_ident(mviews.mv_name) || ' '
